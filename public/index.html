@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Parqueadero de Motos</title>
-<meta name="theme-color" content="#1B1D21">
+<meta name="theme-color" content="#2B2438">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="img/icon-192.png">
 <link rel="apple-touch-icon" href="img/icon-192.png">
@@ -12,8 +12,33 @@
 </head>
 <body>
 
+<svg style="display:none" aria-hidden="true">
+  <symbol id="icon-moto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="5" cy="17" r="3"/>
+    <circle cx="19" cy="17" r="3"/>
+    <path d="M5 17h4l3-6h4l2 3h2M9 11l2-3h3"/>
+  </symbol>
+  <symbol id="icon-registrar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="9"/>
+    <path d="M12 8v8M8 12h8"/>
+  </symbol>
+  <symbol id="icon-buscar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="11" cy="11" r="7"/>
+    <path d="M21 21l-4.3-4.3"/>
+  </symbol>
+  <symbol id="icon-historial" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="9"/>
+    <path d="M12 7v5l3 3"/>
+  </symbol>
+  <symbol id="icon-parqueados" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="4" y="4" width="16" height="16" rx="3"/>
+    <path d="M8 9h8M8 13h8M8 17h5"/>
+  </symbol>
+</svg>
+
 <div id="pantalla-login" class="pantalla-login">
   <form id="form-login" class="tarjeta pantalla-login-tarjeta" novalidate>
+    <svg class="pantalla-login-icono"><use href="#icon-moto"></use></svg>
     <h1 class="texto-centrado">Parqueadero de Motos</h1>
     <p class="ayuda texto-centrado">Inicia sesión como administrador.</p>
 
@@ -34,31 +59,50 @@
   </form>
 </div>
 
-<div id="app-contenido" class="oculto">
+<div id="app-contenido" class="oculto app-shell">
+
+<aside class="sidebar">
+  <div class="sidebar-marca">
+    <svg class="icono"><use href="#icon-moto"></use></svg>
+    <span>Parqueadero</span>
+  </div>
+  <nav class="sidebar-nav">
+    <button type="button" class="tab-btn activo" data-vista="registro">
+      <svg class="icono"><use href="#icon-registrar"></use></svg>
+      Registrar
+    </button>
+    <button type="button" class="tab-btn" data-vista="buscar">
+      <svg class="icono"><use href="#icon-buscar"></use></svg>
+      Buscar
+    </button>
+    <button type="button" class="tab-btn" data-vista="historial">
+      <svg class="icono"><use href="#icon-historial"></use></svg>
+      Historial
+    </button>
+    <button type="button" class="tab-btn" data-vista="parqueados">
+      <svg class="icono"><use href="#icon-parqueados"></use></svg>
+      Parqueados
+    </button>
+  </nav>
+</aside>
+
+<div class="app-main">
 
 <header class="barra-superior">
-  <h1>Parqueadero de Motos</h1>
-  <div style="display:flex; align-items:center; gap:0.6rem;">
-    <span id="chip-pendientes" class="ayuda" style="color:var(--papel);"></span>
+  <h1 class="titulo-movil">Parqueadero</h1>
+  <div class="barra-superior-estado">
+    <span id="chip-pendientes" class="chip-pendientes"></span>
     <span id="chip-conexion" class="chip-conexion">
       <span class="punto"></span>
       <span id="chip-conexion-texto">Sin conexión</span>
     </span>
-    <span id="header-usuario" class="ayuda" style="color:var(--papel);"></span>
-    <button type="button" id="btn-logout" class="boton-secundario" style="padding:0.35rem 0.7rem; font-size:0.8rem;">Salir</button>
+    <span id="header-usuario" class="usuario-nombre"></span>
+    <button type="button" id="btn-logout" class="boton-secundario" style="padding:0.4rem 0.9rem; font-size:0.8rem;">Salir</button>
   </div>
 </header>
 
-<nav class="nav-tabs">
-  <button type="button" class="tab-btn activo" data-vista="registro">Registrar</button>
-  <button type="button" class="tab-btn" data-vista="buscar">Buscar</button>
-  <button type="button" class="tab-btn" data-vista="historial">Historial</button>
-</nav>
+<main class="contenido">
 
-<main class="layout-dos-columnas">
-
-  <!-- Columna de operación -->
-  <div>
     <section id="vista-registro" class="vista activa">
       <button id="btn-mostrar-form" type="button" class="boton-grande">
         + Registrar nuevo aparcamiento
@@ -141,6 +185,17 @@
       </form>
 
       <div id="confirmacion-registro" class="tarjeta oculto"></div>
+
+      <div id="modal-pago" class="modal-overlay oculto">
+        <div class="modal-caja tarjeta">
+          <h2>¿El cliente ya pagó?</h2>
+          <p class="ayuda">Confirma el pago antes de registrar el ingreso de la moto. Si aún no ha pagado, el formulario queda abierto tal como está.</p>
+          <div style="display:flex; gap:0.75rem; margin-top:1rem;">
+            <button type="button" id="btn-pago-no" class="boton-secundario boton-bloque">No, esperar</button>
+            <button type="button" id="btn-pago-si" class="boton-grande boton-verde boton-bloque">Sí, ya pagó</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section id="vista-buscar" class="vista">
@@ -155,9 +210,14 @@
       </div>
 
       <div id="buscar-resultados"></div>
-
-      <div id="ficha-moto" class="tarjeta oculto"></div>
     </section>
+
+    <div id="modal-ficha" class="modal-overlay oculto">
+      <div class="modal-caja tarjeta">
+        <button type="button" id="btn-cerrar-ficha" class="modal-cerrar" aria-label="Cerrar">&times;</button>
+        <div id="ficha-moto"></div>
+      </div>
+    </div>
 
     <section id="vista-historial" class="vista">
       <div class="tarjeta">
@@ -175,19 +235,53 @@
 
       <div id="historial-resultados"></div>
     </section>
-  </div>
 
-  <!-- Columna de listas / historial (visible solo en PC) -->
-  <div>
-    <div class="tarjeta">
-      <h2>Motos en el parqueadero</h2>
-      <div id="lista-en-parqueadero">
-        <p class="ayuda">Aún no hay motos registradas.</p>
+    <section id="vista-parqueados" class="vista">
+      <div class="stats-fila">
+        <div class="stat-tarjeta">
+          <span class="stat-numero" id="stat-en-parqueadero">0</span>
+          <span class="stat-etiqueta">En el parqueadero</span>
+        </div>
+        <div class="stat-tarjeta">
+          <span class="stat-numero" id="stat-retiradas">0</span>
+          <span class="stat-etiqueta">Ya entregadas</span>
+        </div>
+        <div class="stat-tarjeta">
+          <span class="stat-numero" id="stat-total">0</span>
+          <span class="stat-etiqueta">Total histórico</span>
+        </div>
       </div>
-    </div>
-  </div>
+
+      <div class="tarjeta">
+        <h2>Motos en el parqueadero</h2>
+        <div id="lista-en-parqueadero">
+          <p class="ayuda">Aún no hay motos registradas.</p>
+        </div>
+      </div>
+    </section>
 
 </main>
+
+</div>
+
+<nav class="bottom-nav">
+  <button type="button" class="tab-btn activo" data-vista="registro">
+    <svg class="icono"><use href="#icon-registrar"></use></svg>
+    Registrar
+  </button>
+  <button type="button" class="tab-btn" data-vista="buscar">
+    <svg class="icono"><use href="#icon-buscar"></use></svg>
+    Buscar
+  </button>
+  <button type="button" class="tab-btn" data-vista="historial">
+    <svg class="icono"><use href="#icon-historial"></use></svg>
+    Historial
+  </button>
+  <button type="button" class="tab-btn" data-vista="parqueados">
+    <svg class="icono"><use href="#icon-parqueados"></use></svg>
+    Parqueados
+  </button>
+</nav>
 
 </div>
 

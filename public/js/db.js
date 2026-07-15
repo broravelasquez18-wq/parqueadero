@@ -4,7 +4,7 @@
  * llama a la red directamente desde la UI.
  */
 const DB_NAME = 'parqueadero_db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 const STORES = {
   propietarios: 'cedula',
@@ -61,12 +61,44 @@ function openDb() {
           const seedTx = db.transaction('tarifas', 'readwrite');
           seedTx.objectStore('tarifas').add({
             id: 1,
-            valor_hora: 2000,
-            valor_fraccion: 500,
-            minutos_gracia: 10,
+            valor_hora: 8000,
+            valor_fraccion: 0,
+            minutos_gracia: 0,
             fecha_inicio: '2026-01-01T00:00:00.000Z',
             updated_at: nowIso(),
           });
+        };
+      }
+
+      // Migración v1 -> v2: el negocio pasó a tarifa plana de $8.000 sin
+      // importar el tiempo. Se actualizan las tarifas ya guardadas en
+      // dispositivos existentes (si no, quedarían cobrando con la fórmula
+      // vieja de horas/fracción aunque el código ya cambió).
+      if (event.oldVersion < 2 && db.objectStoreNames.contains('tarifas')) {
+        const tarifasStore = event.target.transaction.objectStore('tarifas');
+        const getAllReq = tarifasStore.getAll();
+        getAllReq.onsuccess = () => {
+          const existentes = getAllReq.result;
+          if (existentes.length === 0) {
+            tarifasStore.add({
+              id: 1,
+              valor_hora: 8000,
+              valor_fraccion: 0,
+              minutos_gracia: 0,
+              fecha_inicio: '2026-01-01T00:00:00.000Z',
+              updated_at: nowIso(),
+            });
+          } else {
+            existentes.forEach((t) => {
+              tarifasStore.put({
+                ...t,
+                valor_hora: 8000,
+                valor_fraccion: 0,
+                minutos_gracia: 0,
+                updated_at: nowIso(),
+              });
+            });
+          }
         };
       }
     };
@@ -329,6 +361,15 @@ async function getRegistrosEnParqueadero() {
   return enriquecidos;
 }
 
+/** Conteos para el panel de estadísticas: en parqueadero, entregadas, y el total histórico de ingresos. */
+async function getEstadisticas() {
+  const store = await tx('registros', 'readonly');
+  const todos = await reqToPromise(store.getAll());
+  const enParqueadero = todos.filter((r) => r.estado === 'EN_PARQUEADERO').length;
+  const retiradas = todos.filter((r) => r.estado === 'RETIRADA').length;
+  return { enParqueadero, retiradas, total: todos.length };
+}
+
 // ---------------------------------------------------------------------
 // Entrega de moto (RF3) e historial (RF4)
 // ---------------------------------------------------------------------
@@ -421,6 +462,7 @@ window.ParqueaderoDB = {
   guardarTarifa,
   buscar,
   getRegistrosEnParqueadero,
+  getEstadisticas,
   entregarMoto,
   getHistorial,
   getPendientes,

@@ -87,6 +87,10 @@ CREATE TABLE registros (
 
 -- =========================================================
 -- tarifas (la vigente es la de fecha_inicio más reciente)
+-- Cobro plano: valor_hora es el único valor que se cobra por moto, sin
+-- importar el tiempo que esté parqueada. valor_fraccion y minutos_gracia
+-- quedan en 0 (se conservan en el esquema por si el negocio vuelve a un
+-- modelo por horas en el futuro, pero calculo.js hoy no los usa).
 -- =========================================================
 CREATE TABLE tarifas (
     id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -126,9 +130,10 @@ CREATE TABLE notificaciones (
 -- Datos semilla
 -- =========================================================
 
--- Tarifa inicial vigente: $2.000 COP/hora, fracción $500, 10 min de gracia.
+-- Tarifa plana: $8.000 fijos por moto, sin importar cuánto tiempo esté
+-- parqueada (valor_fraccion y minutos_gracia quedan en 0, no se usan).
 INSERT INTO tarifas (valor_hora, valor_fraccion, minutos_gracia, fecha_inicio)
-VALUES (2000.00, 500.00, 10, '2026-01-01 00:00:00');
+VALUES (8000.00, 0.00, 0, '2026-01-01 00:00:00');
 
 -- Usuario administrador de ejemplo.
 -- usuario: admin / contraseña: admin123

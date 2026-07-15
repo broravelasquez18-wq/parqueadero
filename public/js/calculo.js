@@ -5,25 +5,18 @@
  */
 
 /**
- * Calcula el valor a cobrar entre hora_ingreso y hora_salida según la
- * tarifa vigente: minutos de gracia sin costo, luego horas completas a
- * valor_hora y una fracción final (menos de una hora) a valor_fraccion.
+ * Calcula el valor a cobrar entre hora_ingreso y hora_salida.
+ * Tarifa plana: se cobra siempre tarifa.valor_hora completo, sin importar
+ * cuánto tiempo haya estado la moto (desde el minuto 1 ya se debe el
+ * valor completo). minutosTotales se conserva solo para mostrar la
+ * duración en pantalla y en el SMS, no afecta el valor.
  */
 function calcularCobro(horaIngresoIso, horaSalidaIso, tarifa) {
   const ingreso = new Date(horaIngresoIso);
   const salida = new Date(horaSalidaIso);
   const minutosTotales = Math.max(0, Math.ceil((salida - ingreso) / 60000));
-  const minutosCobrables = Math.max(0, minutosTotales - tarifa.minutos_gracia);
 
-  const horas = Math.floor(minutosCobrables / 60);
-  const minutosFraccion = minutosCobrables % 60;
-
-  let valor = horas * tarifa.valor_hora;
-  if (minutosFraccion > 0) {
-    valor += tarifa.valor_fraccion;
-  }
-
-  return { valor, minutosTotales, minutosCobrables, horas, minutosFraccion };
+  return { valor: tarifa.valor_hora, minutosTotales, minutosCobrables: minutosTotales, horas: 0, minutosFraccion: 0 };
 }
 
 function formatDuracion(minutosTotales) {

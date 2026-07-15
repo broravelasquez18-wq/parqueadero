@@ -45,15 +45,17 @@ window.addEventListener('online', actualizarChipConexion);
 window.addEventListener('offline', actualizarChipConexion);
 
 // ---------------------------------------------------------------------
-// Navegación por pestañas (móvil)
+// Navegación por pestañas (sidebar en PC + barra inferior en móvil)
 // ---------------------------------------------------------------------
 
 function inicializarNavegacion() {
   const botones = document.querySelectorAll('.tab-btn');
   botones.forEach((btn) => {
     btn.addEventListener('click', () => {
-      botones.forEach((b) => b.classList.remove('activo'));
-      btn.classList.add('activo');
+      // Hay dos copias físicas de cada pestaña (sidebar y barra inferior):
+      // se sincroniza el estado "activo" por data-vista, no por el botón
+      // exacto que se clickeó.
+      botones.forEach((b) => b.classList.toggle('activo', b.dataset.vista === btn.dataset.vista));
 
       document.querySelectorAll('.vista').forEach((v) => v.classList.remove('activa'));
       const vista = document.getElementById(`vista-${btn.dataset.vista}`);
@@ -61,6 +63,9 @@ function inicializarNavegacion() {
 
       if (btn.dataset.vista === 'historial') {
         refrescarHistorial();
+      }
+      if (btn.dataset.vista === 'parqueados') {
+        refrescarListaEnParqueadero();
       }
     });
   });
@@ -226,7 +231,7 @@ function mostrarMensajeForm(texto, tipo) {
   form.mensaje.innerHTML = `<div class="aviso ${tipo}">${texto}</div>`;
 }
 
-async function manejarSubmitRegistro(event) {
+function manejarSubmitRegistro(event) {
   event.preventDefault();
   form.mensaje.innerHTML = '';
 
@@ -239,6 +244,37 @@ async function manejarSubmitRegistro(event) {
     return;
   }
 
+  // Antes de guardar nada se pregunta si el cliente ya pagó. Si dice que
+  // no, el formulario se queda exactamente como está (sin borrar nada) y
+  // no se registra ingreso todavía.
+  document.getElementById('modal-pago').classList.remove('oculto');
+}
+
+function cerrarModalPago() {
+  document.getElementById('modal-pago').classList.add('oculto');
+}
+
+function inicializarModalPago() {
+  const overlay = document.getElementById('modal-pago');
+
+  document.getElementById('btn-pago-si').addEventListener('click', confirmarPagoYRegistrar);
+  document.getElementById('btn-pago-no').addEventListener('click', cerrarModalPago);
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) cerrarModalPago();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !overlay.classList.contains('oculto')) cerrarModalPago();
+  });
+}
+
+async function confirmarPagoYRegistrar() {
+  cerrarModalPago();
+
+  const cedula = form.cedula.value.trim();
+  const nombre = form.nombre.value.trim();
+  const telefono = form.telefono.value.trim();
   const placa = modoPlacaActual === 'sin-placa' ? null : (form.placa.value.trim().toUpperCase() || null);
   const marca = form.marca.value.trim();
   const color = form.color.value.trim();
@@ -332,7 +368,7 @@ async function ejecutarBusqueda() {
   const query = document.getElementById('input-buscar').value.trim();
   const mensajeEl = document.getElementById('buscar-mensaje');
   const resultadosEl = document.getElementById('buscar-resultados');
-  document.getElementById('ficha-moto').classList.add('oculto');
+  cerrarFicha();
   mensajeEl.innerHTML = '';
   resultadosEl.innerHTML = '';
 
@@ -390,11 +426,30 @@ async function abrirFicha(motoId) {
     <div id="ficha-mensaje"></div>
     ${botonEntregar}
   `;
-  el.classList.remove('oculto');
+  document.getElementById('modal-ficha').classList.remove('oculto');
 
   if (registroActivo) {
     document.getElementById('btn-entregar-moto').addEventListener('click', () => entregarMotoUI(registroActivo.id));
   }
+}
+
+function cerrarFicha() {
+  document.getElementById('modal-ficha').classList.add('oculto');
+  document.getElementById('ficha-moto').innerHTML = '';
+}
+
+function inicializarModalFicha() {
+  const overlay = document.getElementById('modal-ficha');
+
+  document.getElementById('btn-cerrar-ficha').addEventListener('click', cerrarFicha);
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) cerrarFicha();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !overlay.classList.contains('oculto')) cerrarFicha();
+  });
 }
 
 async function entregarMotoUI(registroId) {
@@ -507,6 +562,14 @@ async function refrescarListaEnParqueadero() {
   const contenedor = document.getElementById('lista-en-parqueadero');
   if (!contenedor) return;
 
+  const estadisticas = await ParqueaderoDB.getEstadisticas();
+  const statEnParqueadero = document.getElementById('stat-en-parqueadero');
+  const statRetiradas = document.getElementById('stat-retiradas');
+  const statTotal = document.getElementById('stat-total');
+  if (statEnParqueadero) statEnParqueadero.textContent = estadisticas.enParqueadero;
+  if (statRetiradas) statRetiradas.textContent = estadisticas.retiradas;
+  if (statTotal) statTotal.textContent = estadisticas.total;
+
   const items = await ParqueaderoDB.getRegistrosEnParqueadero();
 
   if (items.length === 0) {
@@ -533,7 +596,9 @@ document.addEventListener('DOMContentLoaded', () => {
   actualizarChipConexion();
   inicializarNavegacion();
   inicializarFormulario();
+  inicializarModalPago();
   inicializarBuscador();
+  inicializarModalFicha();
   inicializarHistorial();
   refrescarListaEnParqueadero();
 
