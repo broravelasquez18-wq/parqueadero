@@ -1,0 +1,26 @@
+{
+  "name": "Parqueadero de Motos",
+  "short_name": "Parqueadero",
+  "description": "Registro y entrega de motos en parqueadero, con comprobante por SMS.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1B1D21",
+  "theme_color": "#1B1D21",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "img/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "img/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

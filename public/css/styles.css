@@ -1,0 +1,449 @@
+:root {
+  --asfalto: #1B1D21;
+  --papel: #F5F4F0;
+  --amarillo-placa: #F7C500;
+  --verde: #1D9E75;
+  --rojo: #D64545;
+
+  --fuente-sistema: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --fuente-mono: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+
+  --radio: 10px;
+  --sombra: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--papel);
+  color: var(--asfalto);
+  font-family: var(--fuente-sistema);
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+h1, h2, h3 {
+  margin: 0 0 0.5em;
+}
+
+/* -------------------- Barra superior -------------------- */
+
+.barra-superior {
+  background: var(--asfalto);
+  color: var(--papel);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  box-shadow: var(--sombra);
+}
+
+.barra-superior h1 {
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+}
+
+.chip-conexion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--rojo);
+  color: white;
+}
+
+.chip-conexion.conectado {
+  background: var(--verde);
+}
+
+.chip-conexion .punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  filter: brightness(1.6);
+}
+
+/* -------------------- Navegación por pestañas -------------------- */
+
+.nav-tabs {
+  display: flex;
+  background: #2A2D33;
+  overflow-x: auto;
+}
+
+.nav-tabs button {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  color: var(--papel);
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.nav-tabs button.activo {
+  border-bottom-color: var(--amarillo-placa);
+  color: var(--amarillo-placa);
+}
+
+/* -------------------- Layout principal -------------------- */
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.vista {
+  display: none;
+}
+
+.vista.activa {
+  display: block;
+}
+
+/* -------------------- Botón grande de acción -------------------- */
+
+.boton-grande {
+  display: block;
+  width: 100%;
+  padding: 1.1rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--asfalto);
+  background: var(--amarillo-placa);
+  border: 2px solid var(--asfalto);
+  border-radius: var(--radio);
+  cursor: pointer;
+  box-shadow: var(--sombra);
+}
+
+.boton-grande:active {
+  transform: translateY(1px);
+}
+
+.boton-secundario {
+  display: inline-block;
+  padding: 0.7rem 1.1rem;
+  font-weight: 600;
+  color: var(--papel);
+  background: var(--asfalto);
+  border: 2px solid var(--asfalto);
+  border-radius: var(--radio);
+  cursor: pointer;
+}
+
+.boton-verde {
+  background: var(--verde);
+  border-color: var(--verde);
+  color: white;
+}
+
+.boton-rojo {
+  background: var(--rojo);
+  border-color: var(--rojo);
+  color: white;
+}
+
+.boton-bloque {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+/* -------------------- Tarjetas / secciones -------------------- */
+
+.tarjeta {
+  background: white;
+  border: 1px solid #DEDBD2;
+  border-radius: var(--radio);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--sombra);
+}
+
+/* -------------------- Formulario -------------------- */
+
+.campo {
+  margin-bottom: 1rem;
+}
+
+.campo label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.campo input,
+.campo textarea,
+.campo select {
+  width: 100%;
+  padding: 0.65rem;
+  border: 2px solid #C9C6BC;
+  border-radius: 8px;
+  background: white;
+  color: var(--asfalto);
+}
+
+.campo input:focus,
+.campo textarea:focus,
+.campo select:focus {
+  outline: none;
+  border-color: var(--asfalto);
+}
+
+.campo .ayuda {
+  font-size: 0.8rem;
+  color: #55524a;
+  margin-top: 0.25rem;
+}
+
+.contador-caracteres {
+  font-size: 0.8rem;
+  color: #55524a;
+  text-align: right;
+}
+
+/* -------------------- Campo de placa estilo placa colombiana -------------------- */
+
+.placa-input-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+input.placa {
+  font-family: var(--fuente-mono);
+  font-weight: 800;
+  font-size: 1.6rem;
+  letter-spacing: 0.15em;
+  text-align: center;
+  text-transform: uppercase;
+  background: var(--amarillo-placa);
+  color: var(--asfalto);
+  border: 4px solid var(--asfalto);
+  border-radius: 6px;
+  padding: 0.6rem 0.5rem;
+  max-width: 320px;
+}
+
+input.placa::placeholder {
+  color: rgba(27, 29, 33, 0.45);
+}
+
+/* -------------------- Selector de modo de placa -------------------- */
+
+.selector-segmentos {
+  display: flex;
+  border: 2px solid var(--asfalto);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.selector-segmentos button {
+  flex: 1;
+  padding: 0.6rem 0.4rem;
+  border: none;
+  background: white;
+  color: var(--asfalto);
+  font-weight: 600;
+  cursor: pointer;
+  border-right: 2px solid var(--asfalto);
+  font-size: 0.85rem;
+}
+
+.selector-segmentos button:last-child {
+  border-right: none;
+}
+
+.selector-segmentos button.activo {
+  background: var(--asfalto);
+  color: var(--amarillo-placa);
+}
+
+.modo-placa-panel {
+  display: none;
+}
+
+.modo-placa-panel.activo {
+  display: block;
+}
+
+.aviso {
+  background: #FFF4CC;
+  border: 1px solid var(--amarillo-placa);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.aviso.error {
+  background: #FBE3E3;
+  border-color: var(--rojo);
+  color: #7A1F1F;
+}
+
+.aviso.exito {
+  background: #E1F5EC;
+  border-color: var(--verde);
+  color: #10553D;
+}
+
+/* -------------------- Cámara / OCR -------------------- */
+
+.camara-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto 0.75rem;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid var(--asfalto);
+  background: black;
+}
+
+.camara-wrap video {
+  width: 100%;
+  display: block;
+}
+
+.camara-acciones {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+
+/* -------------------- Listas de resultados (buscador / historial / en vivo) -------------------- */
+
+.item-lista {
+  background: white;
+  border: 1px solid #DEDBD2;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 0.6rem;
+  cursor: pointer;
+}
+
+.item-lista:hover {
+  border-color: var(--asfalto);
+}
+
+.item-lista-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.item-lista .placa-mini {
+  font-family: var(--fuente-mono);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  background: var(--amarillo-placa);
+  border: 2px solid var(--asfalto);
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+}
+
+.item-lista .detalle {
+  font-size: 0.85rem;
+  color: #3a3833;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+}
+
+.badge.en-parqueadero {
+  background: var(--verde);
+}
+
+.badge.retirada {
+  background: #6b6960;
+}
+
+.ficha-linea {
+  margin-bottom: 0.4rem;
+}
+
+.ficha-linea strong {
+  display: inline-block;
+  min-width: 130px;
+}
+
+/* -------------------- Pantalla de login -------------------- */
+
+.pantalla-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--asfalto);
+  padding: 1rem;
+}
+
+.pantalla-login-tarjeta {
+  width: 100%;
+  max-width: 360px;
+}
+
+/* -------------------- Utilidades -------------------- */
+
+.oculto {
+  display: none !important;
+}
+
+.texto-centrado {
+  text-align: center;
+}
+
+.mt-1 { margin-top: 1rem; }
+
+/* -------------------- Responsivo: móvil / PC -------------------- */
+
+/* Móvil por defecto: una sola columna, botones grandes (ya definido arriba). */
+
+@media (min-width: 900px) {
+  main.layout-dos-columnas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .nav-tabs {
+    display: none;
+  }
+}

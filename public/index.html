@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Parqueadero de Motos</title>
+<meta name="theme-color" content="#1B1D21">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="img/icon-192.png">
+<link rel="apple-touch-icon" href="img/icon-192.png">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="pantalla-login" class="pantalla-login">
+  <form id="form-login" class="tarjeta pantalla-login-tarjeta" novalidate>
+    <h1 class="texto-centrado">Parqueadero de Motos</h1>
+    <p class="ayuda texto-centrado">Inicia sesión como administrador.</p>
+
+    <div class="campo">
+      <label for="login-usuario">Usuario</label>
+      <input type="text" id="login-usuario" autocomplete="username" required>
+    </div>
+
+    <div class="campo">
+      <label for="login-password">Contraseña</label>
+      <input type="password" id="login-password" autocomplete="current-password" required>
+    </div>
+
+    <div id="login-mensaje"></div>
+
+    <button type="submit" id="btn-login-submit" class="boton-grande boton-bloque">Ingresar</button>
+    <p class="ayuda texto-centrado mt-1">La primera vez necesitas conexión a internet. Después, la app abre sin conexión.</p>
+  </form>
+</div>
+
+<div id="app-contenido" class="oculto">
+
+<header class="barra-superior">
+  <h1>Parqueadero de Motos</h1>
+  <div style="display:flex; align-items:center; gap:0.6rem;">
+    <span id="chip-pendientes" class="ayuda" style="color:var(--papel);"></span>
+    <span id="chip-conexion" class="chip-conexion">
+      <span class="punto"></span>
+      <span id="chip-conexion-texto">Sin conexión</span>
+    </span>
+    <span id="header-usuario" class="ayuda" style="color:var(--papel);"></span>
+    <button type="button" id="btn-logout" class="boton-secundario" style="padding:0.35rem 0.7rem; font-size:0.8rem;">Salir</button>
+  </div>
+</header>
+
+<nav class="nav-tabs">
+  <button type="button" class="tab-btn activo" data-vista="registro">Registrar</button>
+  <button type="button" class="tab-btn" data-vista="buscar">Buscar</button>
+  <button type="button" class="tab-btn" data-vista="historial">Historial</button>
+</nav>
+
+<main class="layout-dos-columnas">
+
+  <!-- Columna de operación -->
+  <div>
+    <section id="vista-registro" class="vista activa">
+      <button id="btn-mostrar-form" type="button" class="boton-grande">
+        + Registrar nuevo aparcamiento
+      </button>
+
+      <form id="form-registro" class="tarjeta oculto" novalidate>
+        <h2>Registrar aparcamiento</h2>
+
+        <div class="campo">
+          <label for="input-cedula">Número de cédula del propietario *</label>
+          <input type="text" id="input-cedula" inputmode="numeric" autocomplete="off" required>
+        </div>
+
+        <div class="campo">
+          <label for="input-nombre">Nombre del propietario *</label>
+          <input type="text" id="input-nombre" required>
+        </div>
+
+        <div class="campo">
+          <label for="input-telefono">Número de teléfono *</label>
+          <input type="tel" id="input-telefono" placeholder="Ej: 3001234567" required>
+          <div class="ayuda">A este número llegará el SMS de comprobante.</div>
+        </div>
+
+        <div class="campo">
+          <label>Placa de la moto</label>
+          <div class="selector-segmentos" id="selector-modo-placa">
+            <button type="button" data-modo="foto" class="activo">Tomar foto</button>
+            <button type="button" data-modo="manual">Escribirla</button>
+            <button type="button" data-modo="sin-placa">No tiene placa</button>
+          </div>
+
+          <!-- Modo: tomar foto -->
+          <div class="modo-placa-panel activo" data-panel="foto">
+            <div class="camara-wrap oculto" id="camara-wrap">
+              <video id="video-camara" playsinline muted></video>
+            </div>
+            <div class="camara-acciones">
+              <button type="button" id="btn-abrir-camara" class="boton-secundario">Abrir cámara</button>
+              <button type="button" id="btn-capturar" class="boton-secundario oculto">Capturar y leer placa</button>
+            </div>
+            <div id="ocr-estado" class="ayuda"></div>
+          </div>
+
+          <!-- Modo: manual -->
+          <div class="modo-placa-panel" data-panel="manual">
+            <div class="ayuda">Escribe la placa manualmente.</div>
+          </div>
+
+          <!-- Modo: sin placa -->
+          <div class="modo-placa-panel" data-panel="sin-placa">
+            <div class="aviso">Esta moto se registrará sin placa. La búsqueda posterior se hará por la cédula del propietario.</div>
+          </div>
+
+          <div class="placa-input-wrap mt-1">
+            <input type="text" id="input-placa" class="placa" maxlength="6" placeholder="ABC12D">
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="input-marca">Marca</label>
+          <input type="text" id="input-marca">
+        </div>
+
+        <div class="campo">
+          <label for="input-color">Color</label>
+          <input type="text" id="input-color">
+        </div>
+
+        <div class="campo">
+          <label for="input-descripcion">Descripción breve</label>
+          <textarea id="input-descripcion" rows="2" maxlength="160"></textarea>
+          <div class="contador-caracteres"><span id="contador-descripcion">0</span>/160</div>
+        </div>
+
+        <div id="form-registro-mensaje"></div>
+
+        <button type="submit" class="boton-grande boton-bloque">Finalizar el registro</button>
+        <button type="button" id="btn-cancelar-registro" class="boton-secundario boton-bloque mt-1">Cancelar</button>
+      </form>
+
+      <div id="confirmacion-registro" class="tarjeta oculto"></div>
+    </section>
+
+    <section id="vista-buscar" class="vista">
+      <div class="tarjeta">
+        <h2>Buscar</h2>
+        <div class="campo">
+          <label for="input-buscar">Cédula o placa</label>
+          <input type="text" id="input-buscar" placeholder="Ej: 123456789 o ABC12D" autocomplete="off">
+        </div>
+        <button type="button" id="btn-buscar" class="boton-grande boton-bloque">Buscar</button>
+        <div id="buscar-mensaje" class="mt-1"></div>
+      </div>
+
+      <div id="buscar-resultados"></div>
+
+      <div id="ficha-moto" class="tarjeta oculto"></div>
+    </section>
+
+    <section id="vista-historial" class="vista">
+      <div class="tarjeta">
+        <h2>Historial</h2>
+        <div class="campo">
+          <label for="historial-filtro-query">Cédula o placa</label>
+          <input type="text" id="historial-filtro-query" placeholder="Filtrar por cédula o placa" autocomplete="off">
+        </div>
+        <div class="campo">
+          <label for="historial-filtro-fecha">Fecha de ingreso</label>
+          <input type="date" id="historial-filtro-fecha">
+        </div>
+        <button type="button" id="btn-historial-limpiar" class="boton-secundario">Limpiar filtros</button>
+      </div>
+
+      <div id="historial-resultados"></div>
+    </section>
+  </div>
+
+  <!-- Columna de listas / historial (visible solo en PC) -->
+  <div>
+    <div class="tarjeta">
+      <h2>Motos en el parqueadero</h2>
+      <div id="lista-en-parqueadero">
+        <p class="ayuda">Aún no hay motos registradas.</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="js/db.js"></script>
+<script src="js/calculo.js"></script>
+<script src="js/ocr.js"></script>
+<script src="js/app.js"></script>
+<script src="js/sync.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>
