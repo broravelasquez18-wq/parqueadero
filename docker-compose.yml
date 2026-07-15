@@ -1,10 +1,32 @@
 version: '3.8'
 
 services:
+  # Base de datos MySQL automatizada
+  db:
+    image: mysql:8.0
+    container_name: parqueadero_db
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASS}
+      - MYSQL_DATABASE=parqueadero_db
+    volumes:
+      # Persistencia de datos de MySQL
+      - mysql_data:/var/lib/mysql
+      # Auto-importacion del archivo SQL al iniciar el contenedor por primera vez
+      - ./database/parqueadero_db.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    networks:
+      - parqueadero_net
+
+  # Aplicacion Web PHP (Parqueadero)
   app:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: parqueadero_app
+    restart: unless-stopped
+    depends_on:
+      - db
     environment:
       - DB_HOST=db
       - DB_PORT=3306
@@ -13,23 +35,17 @@ services:
       - DB_PASS=${DB_PASS}
       - SMS_ENVIO_ACTIVO=true
       - SMS_PROVIDER=android
-      # Reemplaza los valores de abajo con las credenciales de tu app en el despliegue
       - ANDROID_GATEWAY_URL=https://api.sms-gate.app/3rdparty/v1
       - ANDROID_GATEWAY_USER=${ANDROID_GATEWAY_USER}
       - ANDROID_GATEWAY_PASSWORD=${ANDROID_GATEWAY_PASSWORD}
       - APP_ENV=production
       - APP_DEBUG=false
-    depends_on:
-      - db
+    networks:
+      - parqueadero_net
 
-  db:
-    image: mysql:8
-    command: --default-authentication-plugin=mysql_native_password
-    environment:
-      - MYSQL_ROOT_PASSWORD=${DB_PASS}
-      - MYSQL_DATABASE=parqueadero_db
-    volumes:
-      - mysql_data:/var/lib/mysql
+networks:
+  parqueadero_net:
+    driver: bridge
 
 volumes:
   mysql_data:
