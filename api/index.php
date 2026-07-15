@@ -18,6 +18,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 $router = new Router();
 $router->post('/sync', [SyncController::class, 'sync']);
+$router->get('/sync', [SyncController::class, 'descargar']);
 $router->post('/auth/login', [AuthController::class, 'login']);
 $router->post('/notificaciones/procesar', [NotificacionController::class, 'procesar']);
 

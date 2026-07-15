@@ -500,6 +500,20 @@ input.placa::placeholder {
   display: block;
 }
 
+/* Debe coincidir con GUIA_PLACA en js/ocr.js: es justo lo que se recorta
+   antes de mandarlo a Tesseract. */
+.camara-guia {
+  position: absolute;
+  top: 35%;
+  left: 8%;
+  width: 84%;
+  height: 30%;
+  border: 3px dashed var(--accent-placa);
+  border-radius: 8px;
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
 .camara-acciones {
   display: flex;
   gap: 0.5rem;

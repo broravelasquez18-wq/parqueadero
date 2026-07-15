@@ -104,11 +104,7 @@
 <main class="contenido">
 
     <section id="vista-registro" class="vista activa">
-      <button id="btn-mostrar-form" type="button" class="boton-grande">
-        + Registrar nuevo aparcamiento
-      </button>
-
-      <form id="form-registro" class="tarjeta oculto" novalidate>
+      <form id="form-registro" class="tarjeta" novalidate>
         <h2>Registrar aparcamiento</h2>
 
         <div class="campo">
@@ -139,7 +135,9 @@
           <div class="modo-placa-panel activo" data-panel="foto">
             <div class="camara-wrap oculto" id="camara-wrap">
               <video id="video-camara" playsinline muted></video>
+              <div class="camara-guia"></div>
             </div>
+            <p class="ayuda texto-centrado" id="camara-instruccion"></p>
             <div class="camara-acciones">
               <button type="button" id="btn-abrir-camara" class="boton-secundario">Abrir cámara</button>
               <button type="button" id="btn-capturar" class="boton-secundario oculto">Capturar y leer placa</button>

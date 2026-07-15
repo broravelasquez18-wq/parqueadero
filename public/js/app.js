@@ -101,8 +101,7 @@ function inicializarFormulario() {
   form.descripcion = document.getElementById('input-descripcion');
   form.mensaje = document.getElementById('form-registro-mensaje');
 
-  document.getElementById('btn-mostrar-form').addEventListener('click', mostrarFormulario);
-  document.getElementById('btn-cancelar-registro').addEventListener('click', ocultarFormulario);
+  document.getElementById('btn-cancelar-registro').addEventListener('click', resetearFormulario);
 
   form.cedula.addEventListener('blur', autocompletarPropietario);
 
@@ -113,6 +112,7 @@ function inicializarFormulario() {
   form.placa.addEventListener('input', () => {
     form.placa.value = form.placa.value.toUpperCase();
   });
+  form.placa.addEventListener('blur', autocompletarMoto);
 
   inicializarSelectorPlaca();
   inicializarCamara();
@@ -120,19 +120,14 @@ function inicializarFormulario() {
   form.el.addEventListener('submit', manejarSubmitRegistro);
 }
 
-function mostrarFormulario() {
-  document.getElementById('btn-mostrar-form').classList.add('oculto');
-  document.getElementById('confirmacion-registro').classList.add('oculto');
-  form.el.classList.remove('oculto');
-}
-
-function ocultarFormulario() {
+// El formulario se muestra siempre (no hay botón que lo revele): esta
+// función solo lo deja limpio y listo para el siguiente registro.
+function resetearFormulario() {
   detenerCamaraSiActiva();
   form.el.reset();
   document.getElementById('contador-descripcion').textContent = '0';
   form.mensaje.innerHTML = '';
-  document.getElementById('btn-mostrar-form').classList.remove('oculto');
-  form.el.classList.add('oculto');
+  document.getElementById('confirmacion-registro').classList.add('oculto');
 }
 
 async function autocompletarPropietario() {
@@ -143,6 +138,37 @@ async function autocompletarPropietario() {
   if (propietario) {
     form.nombre.value = propietario.nombre;
     form.telefono.value = propietario.telefono;
+  }
+}
+
+/**
+ * Si la placa ya pertenece a una moto conocida (p. ej. una moto que ya
+ * había salido y ahora vuelve), se autocompletan sus datos y los del
+ * propietario, para no tener que volver a llenar todo el formulario
+ * desde cero cada vez que regresa.
+ */
+async function autocompletarMoto() {
+  if (modoPlacaActual === 'sin-placa') return;
+
+  const placa = form.placa.value.trim().toUpperCase();
+  if (!placa) return;
+
+  const moto = await ParqueaderoDB.getMotoPorPlaca(placa);
+  if (!moto) return;
+
+  form.marca.value = moto.marca || '';
+  form.color.value = moto.color || '';
+  form.descripcion.value = moto.descripcion || '';
+  document.getElementById('contador-descripcion').textContent = form.descripcion.value.length;
+
+  form.cedula.value = moto.cedula_propietario;
+  await autocompletarPropietario();
+
+  const registroActivo = await ParqueaderoDB.getRegistroActivoPorMoto(moto.id);
+  if (registroActivo) {
+    mostrarMensajeForm('Esta moto ya figura como parqueada actualmente. Revisa antes de registrar otro ingreso.', 'error');
+  } else {
+    mostrarMensajeForm('Esta moto ya estaba registrada: se autocompletaron sus datos.', 'exito');
   }
 }
 
@@ -183,6 +209,7 @@ function inicializarCamara() {
   const video = document.getElementById('video-camara');
   const wrap = document.getElementById('camara-wrap');
   const estado = document.getElementById('ocr-estado');
+  const instruccion = document.getElementById('camara-instruccion');
 
   btnAbrir.addEventListener('click', async () => {
     estado.textContent = '';
@@ -191,6 +218,7 @@ function inicializarCamara() {
       wrap.classList.remove('oculto');
       btnCapturar.classList.remove('oculto');
       btnAbrir.classList.add('oculto');
+      instruccion.textContent = 'Alinea la placa dentro del recuadro amarillo antes de capturar.';
     } catch (err) {
       estado.textContent = 'No se pudo abrir la cámara: ' + err.message;
     }
@@ -204,6 +232,7 @@ function inicializarCamara() {
       if (placa) {
         form.placa.value = placa;
         estado.textContent = `Placa detectada: ${placa} (puedes corregirla si es necesario).`;
+        await autocompletarMoto();
       } else {
         estado.textContent = `No se detectó un patrón de placa válido. Texto leído: "${textoCrudo.trim()}". Corrígela manualmente.`;
       }
@@ -214,6 +243,7 @@ function inicializarCamara() {
       wrap.classList.add('oculto');
       btnCapturar.classList.add('oculto');
       btnAbrir.classList.remove('oculto');
+      instruccion.textContent = '';
     }
   });
 }
@@ -234,6 +264,7 @@ function mostrarMensajeForm(texto, tipo) {
 function manejarSubmitRegistro(event) {
   event.preventDefault();
   form.mensaje.innerHTML = '';
+  document.getElementById('confirmacion-registro').classList.add('oculto');
 
   const cedula = form.cedula.value.trim();
   const nombre = form.nombre.value.trim();
@@ -308,8 +339,8 @@ async function confirmarPagoYRegistrar() {
       mensaje: mensajeSms,
     });
 
+    resetearFormulario();
     mostrarConfirmacion({ placaTexto, hora, idCorto, nombre });
-    ocultarFormulario();
     refrescarListaEnParqueadero();
     if (window.ParqueaderoSync) {
       window.ParqueaderoSync.actualizarContadorPendientes();
@@ -394,6 +425,26 @@ async function ejecutarBusqueda() {
   }
 }
 
+/**
+ * Vuelve a correr la búsqueda actual y redibuja la lista de resultados
+ * (sin tocar el modal ni el mensaje de "no se encontró"). Se usa tras
+ * entregar una moto para que la lista detrás del modal deje de mostrar
+ * "En el parqueadero" al instante, sin tener que buscar de nuevo a mano.
+ */
+async function refrescarResultadosBusqueda() {
+  const resultadosEl = document.getElementById('buscar-resultados');
+  const query = document.getElementById('input-buscar').value.trim();
+  if (!query) return;
+
+  const resultado = await ParqueaderoDB.buscar(query);
+  if (!resultado.resultados || resultado.resultados.length === 0) return;
+
+  resultadosEl.innerHTML = resultado.resultados.map(renderItemBusqueda).join('');
+  resultadosEl.querySelectorAll('.item-lista').forEach((el) => {
+    el.addEventListener('click', () => abrirFicha(el.dataset.motoId));
+  });
+}
+
 async function abrirFicha(motoId) {
   const moto = await ParqueaderoDB.getMoto(motoId);
   if (!moto) return;
@@ -461,22 +512,18 @@ async function entregarMotoUI(registroId) {
     const registro = await ParqueaderoDB.getRegistro(registroId);
     const moto = await ParqueaderoDB.getMoto(registro.moto_id);
     const propietario = await ParqueaderoDB.getPropietario(moto.cedula_propietario);
-    const tarifa = await ParqueaderoDB.getTarifaVigente();
-    if (!tarifa) {
-      throw new Error('No hay una tarifa configurada. Sincroniza con el servidor antes de entregar motos.');
-    }
 
     const horaSalida = ParqueaderoDB.nowIso();
-    const calculo = ParqueaderoCalculo.calcularCobro(registro.hora_ingreso, horaSalida, tarifa);
+    const { minutosTotales } = ParqueaderoCalculo.calcularDuracion(registro.hora_ingreso, horaSalida);
 
-    await ParqueaderoDB.entregarMoto(registroId, { horaSalida, valor: calculo.valor });
+    // El sistema no maneja dinero: el pago se gestiona personalmente.
+    await ParqueaderoDB.entregarMoto(registroId, { horaSalida, valor: null });
 
     const placaTexto = moto.placa || 'SIN PLACA';
     const horaTexto = new Date(horaSalida).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
-    const duracionTexto = ParqueaderoCalculo.formatDuracion(calculo.minutosTotales);
-    const valorTexto = ParqueaderoCalculo.formatMoneda(calculo.valor);
+    const duracionTexto = ParqueaderoCalculo.formatDuracion(minutosTotales);
 
-    const mensajeSms = `Parqueadero: su moto ${placaTexto} salió a las ${horaTexto}. Tiempo: ${duracionTexto}. Total: ${valorTexto}.`;
+    const mensajeSms = `Parqueadero: su moto ${placaTexto} salió a las ${horaTexto}. Tiempo: ${duracionTexto}.`;
     await ParqueaderoDB.encolarNotificacion({
       registroId,
       tipo: 'SALIDA',
@@ -487,13 +534,14 @@ async function entregarMotoUI(registroId) {
     mensajeEl.innerHTML = `
       <div class="aviso exito">
         <strong>Moto entregada.</strong><br>
-        Tiempo: ${escapeHtml(duracionTexto)}. Total a cobrar: ${escapeHtml(valorTexto)}.<br>
+        Tiempo: ${escapeHtml(duracionTexto)}.<br>
         El SMS de comprobante se enviará al sincronizar.
       </div>
     `;
     if (btn) btn.remove();
 
     refrescarListaEnParqueadero();
+    refrescarResultadosBusqueda();
     if (window.ParqueaderoSync) {
       window.ParqueaderoSync.actualizarContadorPendientes();
       window.ParqueaderoSync.sincronizarAhora();
@@ -526,7 +574,7 @@ function renderFilaHistorial({ registro, moto, propietario }) {
     <div class="item-lista" style="cursor: default;">
       <div class="item-lista-cabecera">
         <span class="placa-mini">${escapeHtml(placaTexto)}</span>
-        <span class="badge retirada">${escapeHtml(ParqueaderoCalculo.formatMoneda(registro.valor_cobrado || 0))}</span>
+        <span class="badge retirada">Retirada</span>
       </div>
       <div class="detalle">
         Propietario: ${escapeHtml(propietario ? propietario.nombre : '—')}<br>
@@ -587,6 +635,21 @@ async function refrescarListaEnParqueadero() {
     </div>
   `).join('');
 }
+
+// ---------------------------------------------------------------------
+// Refresco cuando llegan cambios de OTROS dispositivos (misma cuenta)
+// ---------------------------------------------------------------------
+
+function refrescarTrasSincronizar() {
+  refrescarListaEnParqueadero();
+  refrescarResultadosBusqueda();
+  const vistaHistorial = document.getElementById('vista-historial');
+  if (vistaHistorial && vistaHistorial.classList.contains('activa')) {
+    refrescarHistorial();
+  }
+}
+
+window.addEventListener('parqueadero:datos-actualizados', refrescarTrasSincronizar);
 
 // ---------------------------------------------------------------------
 // Inicio

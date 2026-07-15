@@ -441,6 +441,36 @@ async function marcarSincronizado(storeName, id) {
   }
 }
 
+/**
+ * Aplica al espejo local los cambios descargados del servidor (lo que
+ * registraron OTROS dispositivos con la misma cuenta). Last-write-wins
+ * por updated_at: si el registro local es más nuevo que el del servidor
+ * (normalmente porque todavía no se ha subido), no se pisa. Cada ítem se
+ * procesa por separado para que un choque puntual (p. ej. una placa que
+ * colisiona con otra moto) no bloquee el resto del lote.
+ */
+async function aplicarCambiosServidor(storeName, registrosRemotos) {
+  if (!registrosRemotos || registrosRemotos.length === 0) return;
+  const keyField = STORES[storeName];
+
+  for (const remoto of registrosRemotos) {
+    try {
+      const clave = remoto[keyField];
+      const storeLectura = await tx(storeName, 'readonly');
+      const local = await reqToPromise(storeLectura.get(clave));
+
+      if (local && local.updated_at && new Date(local.updated_at) > new Date(remoto.updated_at)) {
+        continue;
+      }
+
+      const storeEscritura = await tx(storeName, 'readwrite');
+      await reqToPromise(storeEscritura.put({ ...remoto, sync_status: 'SINCRONIZADO' }));
+    } catch (err) {
+      console.warn(`[db] No se pudo aplicar el cambio remoto de ${storeName} (${remoto[keyField]}):`, err);
+    }
+  }
+}
+
 window.ParqueaderoDB = {
   openDb,
   uuid,
@@ -467,4 +497,5 @@ window.ParqueaderoDB = {
   getHistorial,
   getPendientes,
   marcarSincronizado,
+  aplicarCambiosServidor,
 };

@@ -1,22 +1,17 @@
 /**
- * Cálculo de cobro por tiempo de parqueo y utilidades de formato.
- * Funciones puras (sin IndexedDB) para poder probarlas de forma aislada
- * y reutilizarlas desde app.js al entregar una moto.
+ * Cálculo de duración de parqueo y utilidades de formato. El sistema no
+ * maneja dinero: no calcula ni muestra ningún valor a cobrar, el pago se
+ * gestiona personalmente fuera de la app. Función pura (sin IndexedDB)
+ * para poder probarla de forma aislada y reutilizarla desde app.js al
+ * entregar una moto.
  */
 
-/**
- * Calcula el valor a cobrar entre hora_ingreso y hora_salida.
- * Tarifa plana: se cobra siempre tarifa.valor_hora completo, sin importar
- * cuánto tiempo haya estado la moto (desde el minuto 1 ya se debe el
- * valor completo). minutosTotales se conserva solo para mostrar la
- * duración en pantalla y en el SMS, no afecta el valor.
- */
-function calcularCobro(horaIngresoIso, horaSalidaIso, tarifa) {
+/** Minutos transcurridos entre hora_ingreso y hora_salida. */
+function calcularDuracion(horaIngresoIso, horaSalidaIso) {
   const ingreso = new Date(horaIngresoIso);
   const salida = new Date(horaSalidaIso);
   const minutosTotales = Math.max(0, Math.ceil((salida - ingreso) / 60000));
-
-  return { valor: tarifa.valor_hora, minutosTotales, minutosCobrables: minutosTotales, horas: 0, minutosFraccion: 0 };
+  return { minutosTotales };
 }
 
 function formatDuracion(minutosTotales) {
@@ -27,12 +22,7 @@ function formatDuracion(minutosTotales) {
   return `${h} h ${m} min`;
 }
 
-function formatMoneda(valor) {
-  return '$' + Math.round(valor).toLocaleString('es-CO');
-}
-
 window.ParqueaderoCalculo = {
-  calcularCobro,
+  calcularDuracion,
   formatDuracion,
-  formatMoneda,
 };
