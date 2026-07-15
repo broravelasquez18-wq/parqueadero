@@ -3,6 +3,9 @@ FROM php:8.2-apache
 # Habilitar mod_rewrite para que funcionen los archivos .htaccess
 RUN a2enmod rewrite
 
+# Habilitar AllowOverride en Apache para procesar archivos .htaccess
+RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
 # Instalar la extension pdo_mysql necesaria para conectar a la base de datos
 RUN docker-php-ext-install pdo_mysql
 
