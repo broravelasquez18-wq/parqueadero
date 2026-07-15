@@ -4,7 +4,7 @@
  * cachea la librería Tesseract.js y sus modelos (CDN) la primera vez
  * que se descargan con internet, para que el OCR siga funcionando offline.
  */
-const VERSION = 'v17';
+const VERSION = 'v19';
 const APP_SHELL_CACHE = `parqueadero-shell-${VERSION}`;
 const RUNTIME_CACHE = `parqueadero-runtime-${VERSION}`;
 
@@ -16,6 +16,7 @@ const APP_SHELL_FILES = [
   './js/db.js',
   './js/calculo.js',
   './js/ocr.js',
+  './js/qr.js',
   './js/app.js',
   './js/sync.js',
   './js/auth.js',

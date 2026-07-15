@@ -622,6 +622,20 @@ input.placa::placeholder {
   color: var(--text);
 }
 
+/* -------------------- QR de confirmación de registro -------------------- */
+
+.qr-confirmacion-wrap {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+#qr-confirmacion {
+  background: white;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
 /* -------------------- Modal de ficha de moto -------------------- */
 
 .modal-overlay {

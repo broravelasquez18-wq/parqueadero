@@ -1,6 +1,6 @@
 {
-  "name": "Parqueadero de Motos",
-  "short_name": "Parqueadero",
+  "name": "ParqueaYa",
+  "short_name": "ParqueaYa",
   "description": "Registro y entrega de motos en parqueadero, con comprobante por SMS.",
   "start_url": "./index.html",
   "scope": "./",

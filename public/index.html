@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Parqueadero de Motos</title>
+<title>ParqueaYa</title>
 <meta name="theme-color" content="#2B2438">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="img/icon-192.png">
@@ -34,12 +34,18 @@
     <rect x="4" y="4" width="16" height="16" rx="3"/>
     <path d="M8 9h8M8 13h8M8 17h5"/>
   </symbol>
+  <symbol id="icon-qr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="7" height="7"/>
+    <rect x="14" y="3" width="7" height="7"/>
+    <rect x="3" y="14" width="7" height="7"/>
+    <path d="M14 14h3v3h-3v-3zM19 14v3M14 19h3M19 19v.01"/>
+  </symbol>
 </svg>
 
 <div id="pantalla-login" class="pantalla-login">
   <form id="form-login" class="tarjeta pantalla-login-tarjeta" novalidate>
     <svg class="pantalla-login-icono"><use href="#icon-moto"></use></svg>
-    <h1 class="texto-centrado">Parqueadero de Motos</h1>
+    <h1 class="texto-centrado">ParqueaYa</h1>
     <p class="ayuda texto-centrado">Inicia sesión como administrador.</p>
 
     <div class="campo">
@@ -64,7 +70,7 @@
 <aside class="sidebar">
   <div class="sidebar-marca">
     <svg class="icono"><use href="#icon-moto"></use></svg>
-    <span>Parqueadero</span>
+    <span>ParqueaYa</span>
   </div>
   <nav class="sidebar-nav">
     <button type="button" class="tab-btn activo" data-vista="registro">
@@ -89,7 +95,7 @@
 <div class="app-main">
 
 <header class="barra-superior">
-  <h1 class="titulo-movil">Parqueadero</h1>
+  <h1 class="titulo-movil">ParqueaYa</h1>
   <div class="barra-superior-estado">
     <span id="chip-pendientes" class="chip-pendientes"></span>
     <span id="chip-conexion" class="chip-conexion">
@@ -204,6 +210,17 @@
           <input type="text" id="input-buscar" placeholder="Ej: 123456789 o ABC12D" autocomplete="off">
         </div>
         <button type="button" id="btn-buscar" class="boton-grande boton-bloque">Buscar</button>
+
+        <button type="button" id="btn-escanear-qr" class="boton-secundario boton-bloque mt-1">
+          <svg class="icono" style="width:1rem; height:1rem; display:inline-block; vertical-align:-2px;"><use href="#icon-qr"></use></svg>
+          Escanear código QR
+        </button>
+
+        <div class="camara-wrap oculto" id="qr-camara-wrap">
+          <video id="video-qr" playsinline muted></video>
+        </div>
+        <p id="qr-estado" class="ayuda texto-centrado"></p>
+
         <div id="buscar-mensaje" class="mt-1"></div>
       </div>
 
@@ -284,9 +301,12 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1/dist/jsQR.js"></script>
 <script src="js/db.js"></script>
 <script src="js/calculo.js"></script>
 <script src="js/ocr.js"></script>
+<script src="js/qr.js"></script>
 <script src="js/app.js"></script>
 <script src="js/sync.js"></script>
 <script src="js/auth.js"></script>

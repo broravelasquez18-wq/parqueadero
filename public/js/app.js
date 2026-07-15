@@ -330,7 +330,7 @@ async function confirmarPagoYRegistrar() {
     });
     const placaTexto = moto.placa || 'SIN PLACA';
     const idCorto = ParqueaderoDB.shortId(registro.id);
-    const mensajeSms = `Parqueadero: su moto ${placaTexto} ingresó a las ${hora}. Registro ${idCorto}.`;
+    const mensajeSms = `ParqueaYa: su moto ${placaTexto} ingresó a las ${hora}. Registro ${idCorto}.`;
 
     await ParqueaderoDB.encolarNotificacion({
       registroId: registro.id,
@@ -340,7 +340,7 @@ async function confirmarPagoYRegistrar() {
     });
 
     resetearFormulario();
-    mostrarConfirmacion({ placaTexto, hora, idCorto, nombre });
+    mostrarConfirmacion({ placaTexto, hora, idCorto, nombre, motoId: moto.id });
     refrescarListaEnParqueadero();
     if (window.ParqueaderoSync) {
       window.ParqueaderoSync.actualizarContadorPendientes();
@@ -351,7 +351,7 @@ async function confirmarPagoYRegistrar() {
   }
 }
 
-function mostrarConfirmacion({ placaTexto, hora, idCorto, nombre }) {
+function mostrarConfirmacion({ placaTexto, hora, idCorto, nombre, motoId }) {
   const el = document.getElementById('confirmacion-registro');
   el.innerHTML = `
     <div class="aviso exito">
@@ -360,8 +360,17 @@ function mostrarConfirmacion({ placaTexto, hora, idCorto, nombre }) {
       Ingreso a las ${escapeHtml(hora)}. Registro ${escapeHtml(idCorto)}.<br>
       El SMS de comprobante se enviará al sincronizar.
     </div>
+    <div class="qr-confirmacion-wrap">
+      <canvas id="qr-confirmacion"></canvas>
+      <p class="ayuda">Escanéalo desde "Buscar" para encontrar la moto más rápido cuando vuelva.</p>
+    </div>
   `;
   el.classList.remove('oculto');
+
+  const canvasQR = document.getElementById('qr-confirmacion');
+  if (canvasQR && motoId && window.ParqueaderoQR) {
+    ParqueaderoQR.generarQR(canvasQR, motoId);
+  }
 }
 
 // ---------------------------------------------------------------------
@@ -373,6 +382,68 @@ function inicializarBuscador() {
   document.getElementById('input-buscar').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') ejecutarBusqueda();
   });
+}
+
+// -------------------- Escaneo de código QR --------------------
+
+let streamQR = null;
+let escaneandoQR = false;
+
+function inicializarEscaneoQR() {
+  const btn = document.getElementById('btn-escanear-qr');
+  const wrap = document.getElementById('qr-camara-wrap');
+  const video = document.getElementById('video-qr');
+  const estado = document.getElementById('qr-estado');
+
+  btn.addEventListener('click', async () => {
+    if (escaneandoQR) {
+      detenerEscaneoQR();
+      return;
+    }
+
+    estado.textContent = 'Abriendo cámara...';
+    try {
+      streamQR = await ParqueaderoOCR.iniciarCamara(video);
+      wrap.classList.remove('oculto');
+      btn.textContent = 'Cancelar escaneo';
+      escaneandoQR = true;
+      estado.textContent = 'Apunta al código QR de la moto...';
+
+      ParqueaderoQR.escanear(video, (texto) => {
+        detenerEscaneoQR();
+        manejarQrDetectado(texto);
+      });
+    } catch (err) {
+      estado.textContent = 'No se pudo abrir la cámara: ' + err.message;
+    }
+  });
+}
+
+function detenerEscaneoQR() {
+  ParqueaderoQR.detenerEscaneo();
+  if (streamQR) {
+    ParqueaderoOCR.detenerCamara(streamQR);
+    streamQR = null;
+  }
+  document.getElementById('qr-camara-wrap').classList.add('oculto');
+  document.getElementById('btn-escanear-qr').textContent = 'Escanear código QR';
+  document.getElementById('qr-estado').textContent = '';
+  escaneandoQR = false;
+}
+
+async function manejarQrDetectado(motoId) {
+  const mensajeEl = document.getElementById('buscar-mensaje');
+  const moto = await ParqueaderoDB.getMoto(motoId);
+
+  if (!moto) {
+    mensajeEl.innerHTML = '<div class="aviso error">Ese código QR no corresponde a ninguna moto registrada en este dispositivo. Sincroniza e intenta de nuevo.</div>';
+    return;
+  }
+
+  document.getElementById('input-buscar').value = moto.placa || '';
+  mensajeEl.innerHTML = '';
+  document.getElementById('buscar-resultados').innerHTML = '';
+  abrirFicha(moto.id);
 }
 
 function renderItemBusqueda({ moto, propietario, registroActivo }) {
@@ -523,7 +594,7 @@ async function entregarMotoUI(registroId) {
     const horaTexto = new Date(horaSalida).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
     const duracionTexto = ParqueaderoCalculo.formatDuracion(minutosTotales);
 
-    const mensajeSms = `Parqueadero: su moto ${placaTexto} salió a las ${horaTexto}. Tiempo: ${duracionTexto}.`;
+    const mensajeSms = `ParqueaYa: su moto ${placaTexto} salió a las ${horaTexto}. Tiempo: ${duracionTexto}.`;
     await ParqueaderoDB.encolarNotificacion({
       registroId,
       tipo: 'SALIDA',
@@ -661,6 +732,7 @@ document.addEventListener('DOMContentLoaded', () => {
   inicializarFormulario();
   inicializarModalPago();
   inicializarBuscador();
+  inicializarEscaneoQR();
   inicializarModalFicha();
   inicializarHistorial();
   refrescarListaEnParqueadero();
