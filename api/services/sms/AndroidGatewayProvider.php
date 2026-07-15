@@ -40,7 +40,12 @@ final class AndroidGatewayProvider implements SmsProviderInterface
             ];
         }
 
-        $url = rtrim($this->baseUrl, '/') . '/message';
+        $url = rtrim($this->baseUrl, '/');
+        if (str_contains($url, 'api.sms-gate.app')) {
+            $url .= '/messages';
+        } else {
+            $url .= '/message';
+        }
         $to = TelefonoUtil::formatearColombia($telefono);
 
         $ch = curl_init($url);

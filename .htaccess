@@ -1,0 +1,8 @@
+RewriteEngine On
+
+# Redirigir la raiz del sitio a la carpeta public/ de forma transparente
+RewriteCond %{REQUEST_URI} !^/api [NC]
+RewriteCond %{REQUEST_URI} !^/public [NC]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ public/$1 [L]
