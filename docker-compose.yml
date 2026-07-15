@@ -10,7 +10,7 @@ services:
       - DB_PORT=3306
       - DB_NAME=parqueadero_db
       - DB_USER=root
-      - DB_PASS=root_password
+      - DB_PASS=${DB_PASS}
       - SMS_ENVIO_ACTIVO=true
       - SMS_PROVIDER=android
       # Reemplaza los valores de abajo con las credenciales de tu app en el despliegue
@@ -26,7 +26,7 @@ services:
     image: mysql:8
     command: --default-authentication-plugin=mysql_native_password
     environment:
-      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_ROOT_PASSWORD=${DB_PASS}
       - MYSQL_DATABASE=parqueadero_db
     volumes:
       - mysql_data:/var/lib/mysql
