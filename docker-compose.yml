@@ -15,8 +15,8 @@ services:
       - SMS_PROVIDER=android
       # Reemplaza los valores de abajo con las credenciales de tu app en el despliegue
       - ANDROID_GATEWAY_URL=https://api.sms-gate.app/3rdparty/v1
-      - ANDROID_GATEWAY_USER=tu_usuario_de_la_app
-      - ANDROID_GATEWAY_PASSWORD=tu_contrasena_de_la_app
+      - ANDROID_GATEWAY_USER=${ANDROID_GATEWAY_USER}
+      - ANDROID_GATEWAY_PASSWORD=${ANDROID_GATEWAY_PASSWORD}
       - APP_ENV=production
       - APP_DEBUG=false
     depends_on:
