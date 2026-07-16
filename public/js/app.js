@@ -524,8 +524,8 @@ async function abrirFicha(motoId) {
 
   const placaTexto = moto.placa || 'SIN PLACA';
   const estadoBadge = registroActivo
-    ? '<span class="badge en-parqueadero">En el parqueadero</span>'
-    : '<span class="badge retirada">No está parqueada</span>';
+    ? '<span class="badge en-parqueadero" id="ficha-estado-badge">En el parqueadero</span>'
+    : '<span class="badge retirada" id="ficha-estado-badge">No está parqueada</span>';
 
   const botonEntregar = registroActivo
     ? '<button type="button" id="btn-entregar-moto" class="boton-grande boton-verde boton-bloque mt-1">Entregar moto</button>'
@@ -692,6 +692,15 @@ async function entregarMotoUI(registroId) {
       </div>
     `;
     if (btn) btn.remove();
+
+    // El badge de estado en la propia ficha (arriba del todo) no se
+    // repinta solo: hay que actualizarlo aquí para que no siga diciendo
+    // "En el parqueadero" justo después de entregarla.
+    const badgeEl = document.getElementById('ficha-estado-badge');
+    if (badgeEl) {
+      badgeEl.className = 'badge retirada';
+      badgeEl.textContent = 'No está parqueada';
+    }
 
     refrescarListaEnParqueadero();
     refrescarResultadosBusqueda();
