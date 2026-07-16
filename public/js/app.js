@@ -546,12 +546,94 @@ async function abrirFicha(motoId) {
     <div class="ficha-linea"><strong>Teléfono:</strong> ${escapeHtml(propietario.telefono)}</div>
     ${registroActivo ? `<div class="ficha-linea"><strong>Ingreso:</strong> ${escapeHtml(formatFechaHora(registroActivo.hora_ingreso))}</div>` : ''}
     <div id="ficha-mensaje"></div>
+    <button type="button" id="btn-editar-moto" class="boton-secundario boton-bloque mt-1">Editar datos</button>
     ${botonEntregar}
   `;
   document.getElementById('modal-ficha').classList.remove('oculto');
 
   if (registroActivo) {
     document.getElementById('btn-entregar-moto').addEventListener('click', () => entregarMotoUI(registroActivo.id));
+  }
+  document.getElementById('btn-editar-moto').addEventListener('click', () => mostrarEdicionFicha(moto, propietario));
+}
+
+/** Reemplaza la ficha (modo lectura) por un formulario editable, dentro del mismo modal. */
+function mostrarEdicionFicha(moto, propietario) {
+  const el = document.getElementById('ficha-moto');
+  el.innerHTML = `
+    <h2>Editar datos</h2>
+    <div class="campo">
+      <label for="edit-placa">Placa</label>
+      <input type="text" id="edit-placa" class="placa" maxlength="6" value="${escapeHtml(moto.placa || '')}" placeholder="Sin placa">
+    </div>
+    <div class="campo">
+      <label for="edit-marca">Marca</label>
+      <input type="text" id="edit-marca" value="${escapeHtml(moto.marca || '')}">
+    </div>
+    <div class="campo">
+      <label for="edit-color">Color</label>
+      <input type="text" id="edit-color" value="${escapeHtml(moto.color || '')}">
+    </div>
+    <div class="campo">
+      <label for="edit-descripcion">Descripción</label>
+      <textarea id="edit-descripcion" rows="2" maxlength="160">${escapeHtml(moto.descripcion || '')}</textarea>
+    </div>
+    <div class="campo">
+      <label>Cédula del propietario</label>
+      <input type="text" value="${escapeHtml(propietario.cedula)}" disabled>
+      <div class="ayuda">La cédula no se puede editar aquí porque identifica al propietario.</div>
+    </div>
+    <div class="campo">
+      <label for="edit-nombre">Nombre del propietario</label>
+      <input type="text" id="edit-nombre" value="${escapeHtml(propietario.nombre)}" required>
+    </div>
+    <div class="campo">
+      <label for="edit-telefono">Teléfono</label>
+      <input type="tel" id="edit-telefono" value="${escapeHtml(propietario.telefono)}" required>
+    </div>
+    <div id="ficha-mensaje"></div>
+    <div style="display:flex; gap:0.75rem; margin-top:1rem;">
+      <button type="button" id="btn-cancelar-edicion" class="boton-secundario boton-bloque">Cancelar</button>
+      <button type="button" id="btn-guardar-edicion" class="boton-grande boton-bloque">Guardar cambios</button>
+    </div>
+  `;
+
+  document.getElementById('edit-placa').addEventListener('input', (e) => {
+    e.target.value = e.target.value.toUpperCase();
+  });
+  document.getElementById('btn-cancelar-edicion').addEventListener('click', () => abrirFicha(moto.id));
+  document.getElementById('btn-guardar-edicion').addEventListener('click', () => guardarEdicionFicha(moto.id, propietario.cedula));
+}
+
+async function guardarEdicionFicha(motoId, cedulaOriginal) {
+  const mensajeEl = document.getElementById('ficha-mensaje');
+  const placa = document.getElementById('edit-placa').value.trim().toUpperCase() || null;
+  const marca = document.getElementById('edit-marca').value.trim();
+  const color = document.getElementById('edit-color').value.trim();
+  const descripcion = document.getElementById('edit-descripcion').value.trim();
+  const nombre = document.getElementById('edit-nombre').value.trim();
+  const telefono = document.getElementById('edit-telefono').value.trim();
+
+  if (!nombre || !telefono) {
+    mensajeEl.innerHTML = '<div class="aviso error">Nombre y teléfono son obligatorios.</div>';
+    return;
+  }
+
+  try {
+    await ParqueaderoDB.guardarPropietario({ cedula: cedulaOriginal, nombre, telefono });
+    await ParqueaderoDB.actualizarMoto(motoId, { placa, marca, color, descripcion });
+
+    await abrirFicha(motoId);
+    document.getElementById('ficha-mensaje').innerHTML = '<div class="aviso exito">Datos actualizados.</div>';
+
+    refrescarListaEnParqueadero();
+    refrescarResultadosBusqueda();
+    if (window.ParqueaderoSync) {
+      window.ParqueaderoSync.actualizarContadorPendientes();
+      window.ParqueaderoSync.sincronizarAhora();
+    }
+  } catch (err) {
+    mensajeEl.innerHTML = `<div class="aviso error">${escapeHtml(err.message)}</div>`;
   }
 }
 

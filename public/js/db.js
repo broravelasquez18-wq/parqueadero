@@ -216,6 +216,44 @@ async function guardarOReutilizarMoto({ placa, marca, color, descripcion, cedula
   return registro;
 }
 
+/**
+ * Edita los datos de una moto ya existente (para corregir errores de
+ * digitación después de registrarla). No toca cedula_propietario: si esa
+ * quedó mal, es un caso distinto (reasignar a otro propietario), no una
+ * simple corrección de datos.
+ */
+async function actualizarMoto(motoId, { placa, marca, color, descripcion }) {
+  const placaNormalizada = placa ? placa.trim().toUpperCase() : null;
+
+  if (placaNormalizada) {
+    const otraMoto = await getMotoPorPlaca(placaNormalizada);
+    if (otraMoto && otraMoto.id !== motoId) {
+      throw new Error('Esa placa ya pertenece a otra moto registrada.');
+    }
+  }
+
+  const store = await tx('motos', 'readwrite');
+  const moto = await reqToPromise(store.get(motoId));
+  if (!moto) {
+    throw new Error('Moto no encontrada.');
+  }
+
+  moto.marca = marca || null;
+  moto.color = color || null;
+  moto.descripcion = descripcion || null;
+  moto.updated_at = nowIso();
+  moto.sync_status = 'PENDIENTE';
+
+  if (placaNormalizada) {
+    moto.placa = placaNormalizada;
+  } else {
+    delete moto.placa;
+  }
+
+  await reqToPromise(store.put(moto));
+  return moto;
+}
+
 // ---------------------------------------------------------------------
 // Registros (ingresos/salidas)
 // ---------------------------------------------------------------------
@@ -482,6 +520,7 @@ window.ParqueaderoDB = {
   getMoto,
   getMotosPorCedula,
   guardarOReutilizarMoto,
+  actualizarMoto,
   getRegistroActivoPorMoto,
   getRegistro,
   guardarRegistro,
