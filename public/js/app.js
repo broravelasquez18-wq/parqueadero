@@ -324,13 +324,19 @@ async function confirmarPagoYRegistrar() {
 
     const registro = await ParqueaderoDB.crearIngreso({ motoId: moto.id });
 
-    const hora = new Date(registro.hora_ingreso).toLocaleTimeString('es-CO', {
+    const fechaHoraIngreso = new Date(registro.hora_ingreso);
+    const hora = fechaHoraIngreso.toLocaleTimeString('es-CO', {
       hour: '2-digit',
       minute: '2-digit',
     });
+    const fecha = fechaHoraIngreso.toLocaleDateString('es-CO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
     const placaTexto = moto.placa || 'SIN PLACA';
     const idCorto = ParqueaderoDB.shortId(registro.id);
-    const mensajeSms = `ParqueaYa: su moto ${placaTexto} ingresó a las ${hora}. Registro ${idCorto}.`;
+    const mensajeSms = `✅ Bienvenido a Parqueadero 20 de Julio.\nConfirmamos el ingreso exitoso de su moto ${placaTexto}.\n📅 ${fecha} | 🕒 ${hora}\n🆔 Registro: ${idCorto}\nSu vehículo se encuentra bajo nuestro cuidado. Gracias por preferirnos.`;
 
     await ParqueaderoDB.encolarNotificacion({
       registroId: registro.id,
@@ -673,10 +679,13 @@ async function entregarMotoUI(registroId) {
     await ParqueaderoDB.entregarMoto(registroId, { horaSalida, valor: null });
 
     const placaTexto = moto.placa || 'SIN PLACA';
-    const horaTexto = new Date(horaSalida).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+    const fechaHoraSalida = new Date(horaSalida);
+    const horaTexto = fechaHoraSalida.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+    const fechaTexto = fechaHoraSalida.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const duracionTexto = ParqueaderoCalculo.formatDuracion(minutosTotales);
+    const idCorto = ParqueaderoDB.shortId(registroId);
 
-    const mensajeSms = `ParqueaYa: su moto ${placaTexto} salió a las ${horaTexto}. Tiempo: ${duracionTexto}.`;
+    const mensajeSms = `👋 Gracias por confiar en Parqueadero 20 de Julio.\nSu moto ${placaTexto} salió exitosamente.\n📅 ${fechaTexto} | 🕒 ${horaTexto}\n⏱️ Tiempo total: ${duracionTexto}\n🆔 Registro: ${idCorto}\n¡Que tenga un excelente día! Vuelva pronto.`;
     await ParqueaderoDB.encolarNotificacion({
       registroId,
       tipo: 'SALIDA',
