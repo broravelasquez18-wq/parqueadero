@@ -4,7 +4,6 @@ services:
   # Base de datos MySQL automatizada
   db:
     image: mysql:8.0
-    container_name: parqueadero_db
     restart: unless-stopped
     command: --default-authentication-plugin=mysql_native_password
     environment:
@@ -23,7 +22,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: parqueadero_app
     restart: unless-stopped
     depends_on:
       - db
@@ -41,11 +39,17 @@ services:
       - APP_ENV=production
       - APP_DEBUG=false
     networks:
+      # Red interna para hablar con la base de datos
       - parqueadero_net
+      # Red de Dokploy: permite que Traefik enrute el dominio y el HTTPS a esta app
+      - dokploy-network
 
 networks:
   parqueadero_net:
     driver: bridge
+  # Red externa creada por Dokploy (no la administra este compose)
+  dokploy-network:
+    external: true
 
 volumes:
   mysql_data:
