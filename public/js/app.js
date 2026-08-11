@@ -336,7 +336,7 @@ async function confirmarPagoYRegistrar() {
     });
     const placaTexto = moto.placa || 'SIN PLACA';
     const idCorto = ParqueaderoDB.shortId(registro.id);
-    const mensajeSms = `✅ Bienvenido a Parqueadero 20 de Julio.\nConfirmamos el ingreso exitoso de su moto ${placaTexto}.\n📅 ${fecha} | 🕒 ${hora}\n🆔 Registro: ${idCorto}\nSu vehículo se encuentra bajo nuestro cuidado. Gracias por preferirnos.`;
+    const mensajeSms = `Parqueadero 20 de Julio: confirmamos el ingreso de su moto ${placaTexto}. Fecha: ${fecha} ${hora}. Registro: ${idCorto}. Su vehiculo esta bajo nuestro cuidado. Gracias por preferirnos.`;
 
     await ParqueaderoDB.encolarNotificacion({
       registroId: registro.id,
@@ -685,7 +685,7 @@ async function entregarMotoUI(registroId) {
     const duracionTexto = ParqueaderoCalculo.formatDuracion(minutosTotales);
     const idCorto = ParqueaderoDB.shortId(registroId);
 
-    const mensajeSms = `👋 Gracias por confiar en Parqueadero 20 de Julio.\nSu moto ${placaTexto} salió exitosamente.\n📅 ${fechaTexto} | 🕒 ${horaTexto}\n⏱️ Tiempo total: ${duracionTexto}\n🆔 Registro: ${idCorto}\n¡Que tenga un excelente día! Vuelva pronto.`;
+    const mensajeSms = `Parqueadero 20 de Julio: su moto ${placaTexto} salio el ${fechaTexto} a las ${horaTexto}. Tiempo total: ${duracionTexto}. Registro: ${idCorto}. Gracias, vuelva pronto.`;
     await ParqueaderoDB.encolarNotificacion({
       registroId,
       tipo: 'SALIDA',
